@@ -21,7 +21,8 @@
   --color-mauve: #cba6f7;
   --color-pink: #f5c2e7;
   --color-flamingo: #f2cdcd;
-  --color-overlay: #6c7086; 
+  --color-overlay: #6c7086;
+  --color-crust: #181926;
 }
 
 body {
