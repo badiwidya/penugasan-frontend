@@ -11,7 +11,7 @@ export const useAuth = defineStore('auth', {
             this.loading = true
             try {
                 const res = await api.get('/auth/validate')
-                this.authenticated = api.data.authenticated
+                this.authenticated = res.data.authenticated
             } catch (error) {
                 this.authenticated = false
             } finally {
