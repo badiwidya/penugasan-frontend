@@ -12,6 +12,7 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
       },
+      redirect: '/dashboard'
     },
     {
       path: '/login',
@@ -26,6 +27,7 @@ const router = createRouter({
       name: 'Dashboard',
       meta: {
         title: 'Dashboard - PI 61',
+        requiresAuth: true,
       },
       component: DashboardView,
     },
