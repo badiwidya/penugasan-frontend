@@ -1,13 +1,9 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import { useAuth } from './stores/auth';
-import { onMounted, computed } from 'vue';
+import { computed } from 'vue';
 
 const auth = useAuth()
-
-onMounted(async () => {
-  await auth.checkAuth()
-})
 
 const isLoading = computed(() => auth.loading)
 
