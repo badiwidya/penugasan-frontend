@@ -1,8 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import 'tailwindcss';
+@import 'primeicons/primeicons.css';
 
 @theme {
   --font-poppins: Poppins, sans-serif;
+  --color-base: #1e1e2e;
+  --color-text: #cdd6f4;
+  --color-subtext: #a6adc8;
+  --color-surface: #313244;
+  --color-sapphire: #74c7ec;
+  --color-lavender: #b4befe;
+  --color-blue: #89b4fa;
+  --color-sky: #89dceb;
+  --color-teal: #94e2d5;
+  --color-green: #a6e3a1;
+  --color-yellow: #f9e2af;
+  --color-peach: #fab387;
+  --color-maroon: #eba0ac;
+  --color-red: #f38ba8;
+  --color-mauve: #cba6f7;
+  --color-pink: #f5c2e7;
+  --color-flamingo: #f2cdcd;
+  --color-overlay: #6c7086; 
 }
 
 body {
