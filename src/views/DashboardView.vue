@@ -4,12 +4,13 @@ import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import api from '@/services/api.js'
 import Toast from '@/components/Toast.vue'
 import Loading from '@/components/Loading.vue'
+import { useCoursesStore } from '@/stores/course.js'
 
 const showToast = ref(false)
 const toastMessage = ref('')
-const toastType = ref('info')
+const toastType = ref('success')
 
-const triggerToast = (message, type = 'info') => {
+const triggerToast = (message, type = 'success') => {
     toastMessage.value = message
     toastType.value = type
     showToast.value = true
@@ -19,28 +20,23 @@ const closeToast = () => {
     showToast.value = false
 }
 
-const coursesData = ref([])
 const loading = ref(true)
-const showModal = ref(false)
-const modalLoading = ref(true)
 
-const fetchCoursesData = async () => {
-    loading.value = true
+const courses = useCoursesStore()
+
+const getCoursesData = async () => {
     try {
-        const res = await api.get('/api/courses')
-        coursesData.value = res.data.data
-
-        console.log(coursesData.value)
-
-        triggerToast(`Berhasil mengambil data ${coursesData.value.length} kelas`, 'success')
+        await courses.getData()
+        triggerToast('Berhasil mengambil data kelas')
     } catch (error) {
-        console.log(`Terjadi kesalahan saat mengambil data: ${error.message}`)
-        triggerToast(`Gagal mengambil data kelas`, 'error')
+        triggerToast('Terjadi kesalahan saat mengambil data kelas', 'error')
     } finally {
         loading.value = false
     }
-
 }
+
+const showModal = ref(false)
+const modalLoading = ref(true)
 
 const copyText = async (text) => {
     try {
@@ -83,19 +79,38 @@ const closeModal = () => {
     students.value = []
 }
 
+const forceFetchData = async () => {
+    loading.value = true
+    try {
+        await courses.forceFetch()
+        triggerToast('Berhasil mengambil ulang data kelas')
+    } catch (error) {
+        triggerToast('Gagal mengambil ulang data kelas')
+        console.log(error?.message)
+    } finally {
+        loading.value = false
+    }
+}
+
 onMounted(async () => {
-    await fetchCoursesData()
+    await getCoursesData()
 })
 
 </script>
 
+<style scoped>
+</style>
+
 <template>
 
     <DashboardLayout>
-        <h1 class="text-3xl font-bold text-text pt-6 px-6">Daftar Proxy</h1>
+        <div class="bg-base flex justify-between mt-6 mx-6 text-text text-3xl font-bold">
+            <h1>Daftar Proxy</h1>
+            <i @click="forceFetchData" class="pi pi-refresh cursor-pointer hover:animate-spin"></i>
+        </div>
         <Loading v-if="loading" class-tambahan="text-xl font-semibold"/>
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 p-5">
-            <div v-for="course in coursesData" :key="course.id"
+            <div v-for="course in courses.courses" :key="course.id"
                 class="min-h-[200px] bg-surface rounded-lg hover:scale-104 shadow-md overflow-hidden flex flex-col transition duration-300">
                 <div class="p-4 bg-surface">
                     <h3 class="text-lg text-center font-medium text-text">{{ course.name }}</h3>
