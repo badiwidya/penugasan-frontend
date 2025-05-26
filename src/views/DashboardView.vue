@@ -36,7 +36,6 @@ const getCoursesData = async () => {
 }
 
 const showModal = ref(false)
-const modalLoading = ref(true)
 
 const copyText = async (text) => {
     try {
@@ -51,30 +50,16 @@ const teachers = ref([])
 const students = ref([])
 
 const openModal = async (id) => {
-    modalLoading.value = true
     showModal.value = true
-    try {
-        const teachersRes = await api.get(`/api/courses/${id}/teachers`)
-        const studentsRes = await api.get(`/api/courses/${id}/students`)
-
-        const teachersData = teachersRes.data.data
-        const studentsData = studentsRes.data.data
-
-        teachers.value = teachersData
-        students.value = studentsData
-
-        console.log(teachersData)
-
-        modalLoading.value = false
-    } catch (error) {
-        console.log(`Terjadi kesalahan saat mengambil data anggota kelas: ${error.message}`)
-        triggerToast('Terjadi kesalahan saat mengambil data anggota kelas', 'error')
+    const course = await courses.courses.find((c) => c.id === id)
+    if (course) {
+        teachers.value = course.teachers
+        students.value = course.students
     }
 }
 
 const closeModal = () => {
     showModal.value = false
-    modalLoading.value = true
     teachers.value = []
     students.value = []
 }
@@ -155,12 +140,11 @@ onMounted(async () => {
 
                         <!-- Body -->
                         <div class="my-4 h-[400px] overflow-y-auto">
-                            <Loading v-if="modalLoading" />
-                            <div v-else class="text-text">
+                            <div class="text-text">
                                 <div class="flex flex-col mb-4">
                                     <h2 class="border-b border-surface text-lg mb-3">Guru</h2>
                                     <div v-for="teacher in teachers" class="flex gap-2 items-center mb-2">
-                                        <img :src="teacher.profile.photoUrl ? 'https:' + teacher.profile.photoUrl : 'https://i.pinimg.com/236x/2c/47/d5/2c47d5dd5b532f83bb55c4cd6f5bd1ef.jpg'" :alt="teacher.profile.name.fullName + '\'s profile picture'" class="w-8 h-8 rounded-full border-1 border-overlay" loading="lazy">
+                                        <img :src="teacher.profile.photoUrl ? `http://localhost:3000/api/get-image?url=https:${encodeURIComponent(teacher.profile.photoUrl)}` : 'https://i.pinimg.com/236x/2c/47/d5/2c47d5dd5b532f83bb55c4cd6f5bd1ef.jpg'" :alt="teacher.profile.name.fullName + '\'s profile picture'" class="w-8 h-8 rounded-full border-1 border-overlay" loading="lazy">
                                         {{ teacher.profile.name.fullName }}
                                     </div>
                                 </div>
