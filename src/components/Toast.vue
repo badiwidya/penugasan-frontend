@@ -65,19 +65,12 @@ const bgColor = computed(() => {
 </script>
 
 <template>
-  <transition
-    enter-active-class="transform ease-out duration-300 transition"
+  <transition enter-active-class="transform ease-out duration-300 transition"
     enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
-    enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-    leave-active-class="transition ease-in duration-200"
-    leave-from-class="opacity-100"
-    leave-to-class="opacity-0"
-  >
-    <div
-      v-if="show"
-      :class="bgColor"
-      class="toast top-4 right-4 fixed z-50 max-w-sm w-full px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-90 flex items-center"
-    >
+    enter-to-class="translate-y-0 opacity-100 sm:translate-x-0" leave-active-class="transition ease-in duration-200"
+    leave-from-class="opacity-100" leave-to-class="opacity-0">
+    <div v-if="show" :class="bgColor"
+      class="toast top-4 right-4 fixed z-50 max-w-sm w-full px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-90 flex items-center">
       <div class="flex-shrink-0 mr-3">
         <i :class="icon" class="text-lg text-base"></i>
       </div>
@@ -85,10 +78,8 @@ const bgColor = computed(() => {
         <p class="text-sm font-medium text-base">{{ message }}</p>
       </div>
       <div class="flex-shrink-0">
-        <button
-          @click="closeToast"
-          class="inline-flex rounded-md text-base focus:outline-none hover:text-overlay2 transition-colors"
-        >
+        <button @click="closeToast"
+          class="inline-flex rounded-md text-base focus:outline-none hover:text-overlay2 transition-colors">
           <span class="sr-only">Close</span>
           <i class="pi pi-times"></i>
         </button>
@@ -99,9 +90,17 @@ const bgColor = computed(() => {
 
 <style scoped>
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(203, 166, 247, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(203, 166, 247, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(203, 166, 247, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(203, 166, 247, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(203, 166, 247, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(203, 166, 247, 0);
+  }
 }
 
 .fixed {

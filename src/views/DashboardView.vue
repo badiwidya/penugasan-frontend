@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import api from '@/services/api.js'
 import Toast from '@/components/Toast.vue'
+import Loading from '@/components/Loading.vue'
 
 const showToast = ref(false)
 const toastMessage = ref('')
@@ -91,12 +92,7 @@ onMounted(async () => {
 <template>
 
     <DashboardLayout>
-        <div v-if="loading" class="flex justify-center items-center h-full">
-            <div class="text-xl font-semibold text-text">
-                <i class="pi pi-spin pi-spinner"></i>
-                Mengambil data...
-            </div>
-        </div>
+        <Loading v-if="loading" class-tambahan="text-xl font-semibold"/>
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 p-5">
             <div v-for="course in coursesData" :key="course.id"
                 class="min-h-[200px] bg-surface rounded-lg hover:scale-104 shadow-md overflow-hidden flex flex-col transition duration-300">
@@ -143,14 +139,12 @@ onMounted(async () => {
 
                         <!-- Body -->
                         <div class="my-4 h-[400px] overflow-y-auto">
-                            <div v-if ="modalLoading" class="h-full flex justify-center items-center text-text gap-4">
-                                <i class="pi pi-spin pi-spinner"></i> Mengambil data anggota kelas...
-                            </div>
+                            <Loading v-if="modalLoading" />
                             <div v-else class="text-text">
                                 <div class="flex flex-col mb-4">
                                     <h2 class="border-b border-surface text-lg mb-3">Guru</h2>
                                     <div v-for="teacher in teachers" class="flex gap-2 items-center mb-2">
-                                        <img :src="teacher.profile.photoUrl ? 'https:' + teacher.profile.photoUrl : 'https://i.pinimg.com/236x/2c/47/d5/2c47d5dd5b532f83bb55c4cd6f5bd1ef.jpg'" :alt="teacher.profile.name.fullName + '\'s profile picture'" class="w-8 h-8 rounded-full border-1 border-overlay">
+                                        <img :src="teacher.profile.photoUrl ? 'https:' + teacher.profile.photoUrl : 'https://i.pinimg.com/236x/2c/47/d5/2c47d5dd5b532f83bb55c4cd6f5bd1ef.jpg'" :alt="teacher.profile.name.fullName + '\'s profile picture'" class="w-8 h-8 rounded-full border-1 border-overlay" loading="lazy">
                                         {{ teacher.profile.name.fullName }}
                                     </div>
                                 </div>
