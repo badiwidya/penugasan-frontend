@@ -34,7 +34,7 @@ export const useCoursesStore = defineStore('courses', {
                 }
 
                 })
-                this.courses = (mappedData)
+                this.courses = await Promise.all(mappedData)
             } catch (error) {
                 console.log('Terjadi kesalahan saat fetch ulang data kelas:', error?.message)
                 throw error
