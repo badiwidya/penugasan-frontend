@@ -92,6 +92,7 @@ onMounted(async () => {
 <template>
 
     <DashboardLayout>
+        <h1 class="text-3xl font-bold text-text pt-6 px-6">Daftar Proxy</h1>
         <Loading v-if="loading" class-tambahan="text-xl font-semibold"/>
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 p-5">
             <div v-for="course in coursesData" :key="course.id"
