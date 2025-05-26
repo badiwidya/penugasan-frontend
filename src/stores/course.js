@@ -22,13 +22,18 @@ export const useCoursesStore = defineStore('courses', {
         async forceFetch() {
             try {
                 const res = await api.get('/api/courses')
-                const mappedData = res.data.data.map((course) => ({
-                    id: course.id,
-                    name: course.name,
-                    enrollmentCode: course.enrollmentCode,
-                    alternateLink: course.alternateLink,
+                const mappedData = res.data.data.map(async (course) => {
+                    const teachersRes = await api.get(`/api/courses/${course.id}/teachers`)
+                    const teachers = teachersRes.data.data
+                    return {
+                        id: course.id,
+                        name: course.name,
+                        enrollmentCode: course.enrollmentCode,
+                        alternateLink: course.alternateLink,
+                        teachers: teachers
+                }
 
-                }))
+                })
                 this.courses = (mappedData)
             } catch (error) {
                 console.log('Terjadi kesalahan saat fetch ulang data kelas:', error?.message)
