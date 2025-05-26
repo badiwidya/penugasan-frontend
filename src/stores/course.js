@@ -23,11 +23,26 @@ export const useCoursesStore = defineStore('courses', {
             try {
                 const res = await api.get('/api/courses')
                 const mappedData = res.data.data.map(async (course) => {
-                    const teachersRes = await api.get(`/api/courses/${course.id}/teachers`)
-                    const teachers = teachersRes.data.data
 
-                    const studentsRes = await api.get(`/api/courses/${course.id}/students`)
-                    const students = studentsRes.data.data
+                    const [teachersRes, studentsRes] = await Promise.all([
+                        api.get(`/api/courses/${course.id}/teachers`),
+                        api.get(`/api/courses/${course.id}/students`)
+                    ])
+
+                    const teachers = teachersRes.data.data.map(({ profile }) => ({
+                        profile: {
+                            name: { fullName: profile.name.fullName },
+                            photoUrl: profile.photoUrl
+                        }
+                    }))
+
+                    const students = studentsRes.data.data.map(({ profile }) => ({
+                        profile: {
+                            name: { fullName: profile.name.fullName },
+                            photoUrl: profile.photoUrl
+                        }
+                    }))
+
                     return {
                         id: course.id,
                         name: course.name,
