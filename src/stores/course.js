@@ -25,12 +25,16 @@ export const useCoursesStore = defineStore('courses', {
                 const mappedData = res.data.data.map(async (course) => {
                     const teachersRes = await api.get(`/api/courses/${course.id}/teachers`)
                     const teachers = teachersRes.data.data
+
+                    const studentsRes = await api.get(`/api/courses/${course.id}/students`)
+                    const students = studentsRes.data.data
                     return {
                         id: course.id,
                         name: course.name,
                         enrollmentCode: course.enrollmentCode,
                         alternateLink: course.alternateLink,
-                        teachers: teachers
+                        teachers: teachers,
+                        students: students
                 }
 
                 })
