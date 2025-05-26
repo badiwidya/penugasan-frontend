@@ -75,7 +75,8 @@ onMounted(async () => {
                         <p class="text-center text-text">Enrollment Code</p>
                         <p @click="copyText(course.enrollmentCode)" class="text-center text-subtext hover:scale-105 cursor-pointer transition-all duration-300">{{ course.enrollmentCode }}</p>
                     </div>
-                    <a href="" class="block bg-mauve py-2 text-base rounded-md hover:-translate-y-0.5 transition-all duration-300 text-center">Lihat di Classroom</a>
+                    <a :href="course.alternateLink" class="block bg-mauve py-2 text-base rounded-md hover:-translate-y-0.5 transition-all duration-300 text-center mb-2">Lihat di Classroom</a>
+                    <button class="w-full bg-green py-1 text-surface rounded-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer text-center">Lihat Anggota</button>
                 </div>
             </div>
         </div>
