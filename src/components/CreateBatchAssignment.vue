@@ -3,6 +3,7 @@ import { useAssignmentsStore } from '@/stores/assignment'
 import { computed, onMounted, reactive, ref } from 'vue'
 import api from '@/services/api.js'
 import { useCoursesStore } from '@/stores/course'
+import Loading from './Loading.vue'
 
 const props = defineProps({
     show: {
@@ -53,7 +54,10 @@ const toggleAll = () => {
     }
 }
 
+const loading = ref(false)
+
 const createAssignment = async () => {
+    loading.value = true
     try {
         const assignments = form.selectedProxies.map((c) => ({
             courseId: c,
@@ -68,6 +72,8 @@ const createAssignment = async () => {
         emits('success')
     } catch (error) {
         emits('error', { message: error?.message })
+    } finally {
+        loading.value = false
     }
 }
 
@@ -112,7 +118,11 @@ onMounted(async () => {
                     </div>
 
                     <!-- Body -->
-                    <div class="my-4 h-[400px] overflow-y-auto hide-scrollbar p-2">
+                    <div v-if="loading" class="my-4 h-[400px] flex text-text font-semibold p-2 justify-center items-center gap-2">
+                        <i class="pi pi-spin pi-spinner"></i>
+                        Mohon tunggu...
+                    </div>
+                    <div v-else class="my-4 h-[400px] overflow-y-auto hide-scrollbar p-2">
                         <form @submit.prevent="createAssignment" class="text-text">
                             <div class="flex flex-col justify-center mb-2">
                                 <span>Proxy</span>
