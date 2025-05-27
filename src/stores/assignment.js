@@ -4,38 +4,48 @@ import { defineStore } from 'pinia'
 export const useAssignmentsStore = defineStore('assignments', {
     state: () => {
         return {
-            pairIds: [{
-                courseId: null,
-                assignments: [{
-                    type: null,
-                    name: null,
-                    id: null,
-                }]
-            }],
-            assignments: {
-                individu: [],
-                proxy: [],
-                angkatan: [],
-            }
+            pairIds: [],
+            assignments: {}
         }
     },
     persist: true,
 
     actions: {
         async getData() {
-
+            if (this.pairIds.length === 0) return
+            this.forceFetch()
         },
 
         async forceFetch() {
             try {
-                const res = await api.get('/api/assignments')
-                const mappedData = Promise.all(res.data.data.map(async (t) => {
+                const [assignmentsRes, topicsRes] = await Promise.all([
+                    api.get('/api/assignments'),
+                    api.get('/api/topics')
+                ])
 
-                    const assignmentsForPairIds = t.assignments.map((a) => ({
-                        type: a.topicId,
-                        name: a.title,
-                        id: a.id
-                    }))
+                const assignments = {}
+
+                topicsRes.data.data.forEach(topic => {
+                    if (!(topic in assignments)) {
+                        assignments[topic.name] = []
+                    }
+                })
+
+                const mappedData = Promise.all(assignmentsRes.data.data.map(async (t) => {
+
+                    const assignmentsForPairIds = t.assignments.map((a) => {
+
+                        const topicName = topicsRes.data.data.find((topic) => topic.id === a.topicId).name
+
+                        assignments[topicName].push(a)
+                        
+                        return {
+                            type: a.topicId,
+                            name: a.title,
+                            id: a.id,
+                            topicId: a.topicId
+                        }
+                    })
 
                     const pairIds = {
                         courseId: t.courseId,
@@ -47,11 +57,11 @@ export const useAssignmentsStore = defineStore('assignments', {
 
                 this.pairIds = await mappedData
 
-                const assignments = res.data.data[0].map((t) => ({
+                this.assignments = assignments
 
-                }))
             } catch (error) {
-                
+                console.error(error)
+                throw error
             }
         }
     }
