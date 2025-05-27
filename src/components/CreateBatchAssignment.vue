@@ -3,7 +3,6 @@ import { useAssignmentsStore } from '@/stores/assignment'
 import { computed, onMounted, reactive, ref } from 'vue'
 import api from '@/services/api.js'
 import { useCoursesStore } from '@/stores/course'
-import Loading from './Loading.vue'
 
 const props = defineProps({
     show: {
@@ -34,12 +33,16 @@ const form = reactive({
     selectedProxies: [],
     name: '',
     description: '',
+    maxPoints: 100,
+    dueDate: undefined
 })
 
 const resetForm = () => {
     form.selectedProxies = []
     form.name = ''
     form.description = ''
+    form.maxPoints = 100,
+    form.dueDate = undefined
 }
 
 const isAllSelected = computed(() => {
@@ -63,7 +66,9 @@ const createAssignment = async () => {
             courseId: c,
             assignment: {
                 title: form.name,
-                description: form.description
+                description: form.description,
+                maxPoints: form.maxPoints,
+                dueDate: new Date(form.dueDate).toISOString()
             }
         }))
 
@@ -96,6 +101,11 @@ onMounted(async () => {
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none !important;
+}
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5);
+  opacity: 0.8;
+  cursor: pointer;
 }
 </style>
 
@@ -148,6 +158,16 @@ onMounted(async () => {
                                 <label class="flex flex-col">
                                     Deskripsi Tugas
                                     <textarea v-model="form.description" class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 rounded-md" rows="5"></textarea>
+                                </label>
+
+                                <label class="flex flex-col">
+                                    Tenggat Waktu
+                                    <input type="datetime-local" v-model="form.dueDate" class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md">
+                                </label>
+
+                                <label class="flex flex-col">
+                                    Nilai Maksimal
+                                    <input type="number" min="0" max="100" v-model="form.maxPoints" class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md text-text">
                                 </label>
                             </div>
 
