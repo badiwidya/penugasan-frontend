@@ -4,12 +4,12 @@ import { defineStore } from 'pinia'
 export const useAssignmentsStore = defineStore('assignments', {
     state: () => {
         return {
-            pair: [{
+            pairIds: [{
                 courseId: null,
                 assignments: [{
-                    courseWorkType: null,
-                    courseWorkId: null,
-                    courseWorkName: null,
+                    type: null,
+                    name: null,
+                    id: null,
                 }]
             }],
             assignments: {
@@ -19,8 +19,40 @@ export const useAssignmentsStore = defineStore('assignments', {
             }
         }
     },
+    persist: true,
 
     actions: {
+        async getData() {
 
+        },
+
+        async forceFetch() {
+            try {
+                const res = await api.get('/api/assignments')
+                const mappedData = Promise.all(res.data.data.map(async (t) => {
+
+                    const assignmentsForPairIds = t.assignments.map((a) => ({
+                        type: a.topicId,
+                        name: a.title,
+                        id: a.id
+                    }))
+
+                    const pairIds = {
+                        courseId: t.courseId,
+                        assignments: assignmentsForPairIds
+                    }
+
+                    return { pairIds }
+                }))
+
+                this.pairIds = await mappedData
+
+                const assignments = res.data.data[0].map((t) => ({
+
+                }))
+            } catch (error) {
+                
+            }
+        }
     }
 })
