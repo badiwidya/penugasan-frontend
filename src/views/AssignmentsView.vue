@@ -82,6 +82,16 @@ const closeModal = () => {
     showModal.value = false
 }
 
+const handleSuccess = () => {
+    triggerToast('Tugas berhasil dibuat!', 'success')
+    closeModal()
+}
+
+const hadleError = (msg) => {
+    triggerToast('Gagal membuat tugas, detail error ada di console', 'error')
+    console.error(msg)
+}
+
 
 </script>
 
@@ -124,7 +134,7 @@ const closeModal = () => {
 <template>
     <DashboardLayout>
         <Toast :show="showToast" :message="toastMessage" :type="toastType" :duration="3000" @close="closeToast" />
-        <CreateBatchAssignment :show="showModal" @close="closeModal"></CreateBatchAssignment>
+        <CreateBatchAssignment :show="showModal" @close="closeModal" @success="handleSuccess" @error="handleError"></CreateBatchAssignment>
         <div class="bg-base flex justify-between mt-6 mx-6 text-text text-3xl font-bold">
             <h1>Daftar Tugas</h1>
             <button
