@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import Loading from '@/components/Loading.vue'
 import Toast from '@/components/Toast.vue'
+import CreateBatchAssignment from '@/components/CreateBatchAssignment.vue'
 
 const showToast = ref(false)
 const toastMessage = ref('')
@@ -71,6 +72,26 @@ const onAfterLeave = (el) => {
     el.style.overflow = 'visible'
 }
 
+const showModal = ref(false)
+
+const openModal = () => {
+    showModal.value = true
+}
+
+const closeModal = () => {
+    showModal.value = false
+}
+
+const handleSuccess = () => {
+    triggerToast('Tugas berhasil dibuat!', 'success')
+    closeModal()
+}
+
+const hadleError = (msg) => {
+    triggerToast('Gagal membuat tugas, detail error ada di console', 'error')
+    console.error(msg)
+}
+
 
 </script>
 
@@ -113,9 +134,11 @@ const onAfterLeave = (el) => {
 <template>
     <DashboardLayout>
         <Toast :show="showToast" :message="toastMessage" :type="toastType" :duration="3000" @close="closeToast" />
+        <CreateBatchAssignment :show="showModal" @close="closeModal" @success="handleSuccess" @error="handleError"></CreateBatchAssignment>
         <div class="bg-base flex justify-between mt-6 mx-6 text-text text-3xl font-bold">
             <h1>Daftar Tugas</h1>
             <button
+                @click="openModal"
                 class="flex items-center gap-2 bg-mauve px-4 py-1 font-semibold text-lg text-base cursor-pointer hover:-translate-y-0.5 transition-all duration-300 rounded-md">
                 <i class="pi pi-plus"></i>
                 Tambah Tugas
@@ -124,7 +147,7 @@ const onAfterLeave = (el) => {
         <Loading v-if="loading" class-tambahan="text-xl font-semibold" />
         <div class="flex flex-col items-center text-text p-6">
             <div @click="toggleIndividu"
-                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center z-50 transition-all duration-300 hover:bg-opacity-80"
+                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center transition-all duration-300 hover:bg-opacity-80"
                 :class="{ 'rounded-b-md': !Iexpanded }">
                 Penugasan Individu
                 <i class="pi pi-angle-down icon-rotate" :class="{ 'rotated': Iexpanded }"></i>
@@ -148,7 +171,7 @@ const onAfterLeave = (el) => {
             </transition>
 
             <div @click="toggleProxy"
-                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center z-50 transition-all duration-300 hover:bg-opacity-80 mt-4"
+                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center transition-all duration-300 hover:bg-opacity-80 mt-4"
                 :class="{ 'rounded-b-md': !Pexpanded }">
                 Penugasan Proxy
                 <i class="pi pi-angle-down icon-rotate" :class="{ 'rotated': Pexpanded }"></i>
@@ -172,7 +195,7 @@ const onAfterLeave = (el) => {
             </transition>
 
             <div @click="toggleAngkatan"
-                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center z-50 transition-all duration-300 hover:bg-opacity-80 mt-4"
+                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center transition-all duration-300 hover:bg-opacity-80 mt-4"
                 :class="{ 'rounded-b-md': !Aexpanded }">
                 Penugasan Angkatan
                 <i class="pi pi-angle-down icon-rotate" :class="{ 'rotated': Aexpanded }"></i>
