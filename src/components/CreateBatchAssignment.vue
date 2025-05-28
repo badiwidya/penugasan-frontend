@@ -40,9 +40,9 @@ const resetForm = () => {
     form.name = ''
     form.description = ''
     form.maxPoints = 100,
-    form.dueDate = undefined
+        form.dueDate = undefined
     form.topic = '',
-    form.state = 'DRAFT'
+        form.state = 'DRAFT'
 }
 
 const isAllSelected = computed(() => {
@@ -63,6 +63,17 @@ const errorMessage = ref('')
 
 const createAssignment = async () => {
     loading.value = true
+
+    const isDuplicate = Object.values(assignment.assignments).some((topic) => {
+        return topic.find((t) => t.name === form.name.trim())
+    })
+
+    if (isDuplicate) {
+        loading.value = false
+        errorMessage.value = 'Nama tugas sudah ada'
+        return
+    }
+
     if (
         form.selectedProxies.length === 0 ||
         !form.name.trim() ||
@@ -74,6 +85,7 @@ const createAssignment = async () => {
         errorMessage.value = 'Semua field wajib diisi'
         return
     }
+
     try {
         const assignments = form.selectedProxies.map((c) => ({
             courseId: c,
@@ -116,10 +128,23 @@ const cancelTopicCreation = () => {
 
 const createTopic = async () => {
     loading.value = true
-    if (!newTopic.value.trim()) {
+
+    const isDuplicate = Object.keys(assignment.assignments).some(topic => topic === newTopic.value.trim())
+
+    console.log(isDuplicate)
+
+    if (isDuplicate) {
         loading.value = false
+        errorMessage.value = 'Nama topik sudah ada'
         return
     }
+
+    if (!newTopic.value.trim()) {
+        loading.value = false
+        errorMessage.value = 'Nama topik wajib diisi'
+        return
+    }
+
     try {
         const topics = allProxy.map((proxy) => ({
             courseId: proxy,
@@ -288,7 +313,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                 </div>
 
                                 <button type="button" v-if="!showTopicCreation"
-                                    @click.stop="() => { showTopicCreation = true; console.log(showTopicCreation) }"
+                                    @click.stop="showTopicCreation = true"
                                     class="flex items-center justify-center cursor-pointer gap-2 py-1 bg-mauve rounded-md text-sm text-base hover:-translate-y-0.5 transition duration-300"><i
                                         class="pi pi-plus"></i> Buat Topik Baru</button>
                                 <div class="flex" v-else @click.stop>
@@ -338,7 +363,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                 </div>
                             </div>
 
-                            <div v-if="errorMessage" class="text-red-500 text-sm my-2">Semua field wajib diisi!</div>
+                            <div v-if="errorMessage" class="text-red-500 text-sm my-2">{{ errorMessage }}</div>
 
 
                             <button type="submit"
