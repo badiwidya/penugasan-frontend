@@ -31,7 +31,8 @@ const form = reactive({
     description: '',
     maxPoints: 100,
     dueDate: undefined,
-    topic: ''
+    topic: '',
+    state: 'DRAFT',
 })
 
 const resetForm = () => {
@@ -40,7 +41,8 @@ const resetForm = () => {
     form.description = ''
     form.maxPoints = 100,
         form.dueDate = undefined
-    form.topic = ''
+    form.topic = '',
+        form.state = 'DRAFT'
 }
 
 const isAllSelected = computed(() => {
@@ -57,8 +59,21 @@ const toggleAll = () => {
 
 const loading = ref(false)
 
+const errorMessage = ref('')
+
 const createAssignment = async () => {
     loading.value = true
+    if (
+        form.selectedProxies.length === 0 ||
+        !form.name.trim() ||
+        !form.description.trim() ||
+        !form.topic.trim() ||
+        !form.dueDate
+    ) {
+        loading.value = false
+        errorMessage.value = 'Semua field wajib diisi'
+        return
+    }
     try {
         const assignments = form.selectedProxies.map((c) => ({
             courseId: c,
@@ -97,6 +112,10 @@ const cancelTopicCreation = () => {
 
 const createTopic = async () => {
     loading.value = true
+    if (!newTopic.value.trim()) {
+        loading.value = false
+        return
+    }
     try {
         const topics = allProxy.map((proxy) => ({
             courseId: proxy,
@@ -285,7 +304,36 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                     <input type="number" min="0" max="100" v-model="form.maxPoints"
                                         class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md text-text">
                                 </label>
+
+                                <label class="flex flex-col mt-4">
+                                    State
+                                </label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
+                                        :class="{ 'border-mauve': form.state === 'PUBLISHED' }">
+                                        <input type="radio" value="PUBLISHED" v-model="form.state" class="hidden" />
+                                        <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                                            :class="form.state === 'PUBLISHED' ? 'border-mauve' : 'border-subtext'">
+                                            <div v-if="form.state === 'PUBLISHED'" class="w-2 h-2 bg-mauve rounded-full">
+                                            </div>
+                                        </div>
+                                        <span class="text-sm font-medium">Published</span>
+                                    </label>
+
+                                    <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
+                                        :class="{ 'border-mauve': form.state === 'DRAFT' }">
+                                        <input type="radio" value="DRAFT" v-model="form.state" class="hidden" />
+                                        <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                                            :class="form.state === 'DRAFT' ? 'border-mauve' : 'border-subtext'">
+                                            <div v-if="form.state === 'DRAFT'" class="w-2 h-2 bg-mauve rounded-full">
+                                            </div>
+                                        </div>
+                                        <span class="text-sm font-medium">Draft</span>
+                                    </label>
+                                </div>
                             </div>
+
+                            <div v-if="errorMessage" class="text-red-500 text-sm my-2">Semua field wajib diisi!</div>
 
 
                             <button type="submit"
