@@ -167,12 +167,66 @@ const publishAssignment = async (name) => {
 
         await assignment.forceFetch()
 
-        triggerToast(`Berhasil publish tugas ${name}`, 'success')
+        triggerToast(`Berhasil hapus tugas ${name}`, 'success')
     } catch (error) {
         console.log(error)
         triggerToast(`Gagal publish tugas ${name}`, 'error')
     } finally {
         publishLoading.value = false
+    }
+}
+
+const deleteLoading = ref(false)
+
+const deleteAssignment = async (name) => {
+    deleteLoading.value = true
+    try {
+        const request = Object.keys(assignment.pairIds).map((course) => ({
+            courseId: course,
+            courseWorkId: assignment.pairIds[course][name],
+        }))
+
+        const res = await api.post('/api/assignments/batch/delete', { assignments: request })
+
+        if (!res.data.status) {
+            console.log("Detail error:", res.data.detail)
+            throw new Error(res.data.message)
+        }
+
+        await assignment.forceFetch()
+
+        triggerToast(`Berhasil hapus tugas ${name}`, 'success')
+    } catch (error) {
+        console.log(error)
+        triggerToast(`Gagal hapus tugas ${name}`, 'error')
+    } finally {
+        deleteLoading.value = false
+    }
+}
+
+const deleteTopic = async (name) => {
+    loading.value = true
+    try {
+        const request = Object.keys(assignment.pairIds).map((course) => ({
+            courseId: course,
+            topicId: assignment.pairIds[course][name],
+        }))
+
+        const res = await api.post('/api/topics/batch/delete', { topics: request })
+
+        if (!res.data.status) {
+            console.log("Detail error:", res.data.detail)
+            throw new Error(res.data.message)
+        }
+
+        await assignment.forceFetch()
+
+        triggerToast(`Berhasil hapus topik ${name}`, 'success')
+    } catch (error) {
+        console.log(error)
+        triggerToast(`Gagal hapus topik ${name}`, 'error')
+    } finally {
+        loading.value = false
     }
 }
 
@@ -258,27 +312,29 @@ const publishAssignment = async (name) => {
                                 <tbody>
                                     <tr v-for="assignment in topic.assignments">
                                         <td class="text-center p-3 max-w-60 w-60 truncate">{{ assignment.name }}</td>
-                                        <td class="text-center p-3 max-w-80 w-80 truncate" :title="assignment.description">{{ assignment.description }}
+                                        <td class="text-center p-3 max-w-80 w-80 truncate"
+                                            :title="assignment.description">{{ assignment.description }}
                                         </td>
                                         <td class="text-center p-3 flex flex-col items-center">{{
                                             formatDate(assignment.dueDate) }}</td>
                                         <td class="text-center p-3">
                                             <div v-if="assignment.state === 'PUBLISHED'" class="text-center text-text">
                                                 Published</div>
-                                            <div v-else-if="assignment.state === 'DRAFT' && !publishLoading" class="flex justify-center">
+                                            <div v-else-if="assignment.state === 'DRAFT' && !publishLoading"
+                                                class="flex justify-center">
                                                 <button @click="publishAssignment(assignment.name)" type="button"
                                                     class="px-2 py-1 bg-mauve rounded-md hover:-translate-y-0.5 text-base transition duration-300 text-sm">Publish
                                                     Now</button>
                                             </div>
-                                            <div v-else-if="assignment.state === 'DRAFT' && publishLoading" class="flex justify-center text-text items-center gap-2">
+                                            <div v-else-if="assignment.state === 'DRAFT' && publishLoading"
+                                                class="flex justify-center text-text items-center gap-2">
                                                 <i class="pi pi-spin pi-spinner"></i> Mohon tunggu...
                                             </div>
                                         </td>
-                                        <td class="p-3 flex justify-center gap-2">
-                                            <button type="button" class="text-xs p-2 bg-blue text-base rounded-md cursor-pointer hover:-translate-y-0.5 transition duration-300">
-                                                <i class="pi pi-pen-to-square"></i>
-                                            </button>
-                                            <button type="button" class="text-xs p-2 bg-red text-base rounded-md cursor-pointer hover:-translate-y-0.5 transition duration-300">
+                                        <td class="p-3 flex justify-center">
+                                            <i v-if="deleteLoading" class="pi pi-spin pi-spinner text-text"></i>
+                                            <button v-else @click="deleteAssignment(assignment.name)" type="button"
+                                                class="text-xs p-2 bg-red text-base rounded-md cursor-pointer hover:-translate-y-0.5 transition duration-300">
                                                 <i class="pi pi-trash"></i>
                                             </button>
                                         </td>
