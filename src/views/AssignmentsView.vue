@@ -5,6 +5,7 @@ import Loading from '@/components/Loading.vue'
 import Toast from '@/components/Toast.vue'
 import CreateBatchAssignment from '@/components/CreateBatchAssignment.vue'
 import { useAssignmentsStore } from '@/stores/assignment'
+import api from '@/services/api'
 
 const showToast = ref(false)
 const toastMessage = ref('')
@@ -148,6 +149,33 @@ function formatDate(dateString) {
     return `${day}/${month}/${year}, ${hours}:${minutes}`;
 }
 
+const publishLoading = ref(false)
+
+const publishAssignment = async (name) => {
+    publishLoading.value = true
+    try {
+        const request = Object.keys(assignment.pairIds).map((course) => ({
+            courseId: course,
+            courseWorkId: assignment.pairIds[course][name],
+        }))
+
+        const res = await api.post('/api/assignments/batch/publish', { assignments: request })
+
+        if (!res.data.status) {
+            throw new Error(res.data.message)
+        }
+
+        await assignment.forceFetch()
+
+        triggerToast(`Berhasil publish tugas ${name}`, 'success')
+    } catch (error) {
+        console.log(error)
+        triggerToast(`Gagal publish tugas ${name}`, 'error')
+    } finally {
+        publishLoading.value = false
+    }
+}
+
 
 </script>
 
@@ -220,25 +248,29 @@ function formatDate(dateString) {
                             <table class="w-full border-collapse">
                                 <thead>
                                     <tr class="border-b border-gray-300">
-                                        <th class="text-center p-3 font-semibold">Nama Tugas</th>
-                                        <th class="text-center p-3 font-semibold">Deskripsi Tugas</th>
+                                        <th class="text-center p-3 max-w-60 w-60 font-semibold">Nama Tugas</th>
+                                        <th class="text-center p-3 max-w-80 w-80 font-semibold">Deskripsi Tugas</th>
                                         <th class="text-center p-3 font-semibold">Deadline</th>
                                         <th class="text-center p-3 font-semibold">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="assignment in topic.assignments">
-                                        <td class="text-center p-3 font-semibold truncate">{{ assignment.name }}</td>
-                                        <td class="text-center p-3 font-semibold truncate">{{ assignment.description }}
+                                        <td class="text-center p-3 max-w-60 w-60 truncate">{{ assignment.name }}</td>
+                                        <td class="text-center p-3 max-w-80 w-80 truncate" :title="assignment.description">{{ assignment.description }}
                                         </td>
-                                        <td class="text-center p-3 font-semibold flex flex-col items-center">{{ formatDate(assignment.dueDate) }}</td>
-                                        <td class="text-center p-3 font-semibold">
+                                        <td class="text-center p-3 flex flex-col items-center">{{
+                                            formatDate(assignment.dueDate) }}</td>
+                                        <td class="text-center p-3">
                                             <div v-if="assignment.state === 'PUBLISHED'" class="text-center text-text">
                                                 Published</div>
-                                            <div v-else class="flex justify-center">
+                                            <div v-else-if="assignment.state === 'DRAFT' && !publishLoading" class="flex justify-center">
                                                 <button @click="publishAssignment(assignment.name)" type="button"
                                                     class="px-2 py-1 bg-mauve rounded-md hover:-translate-y-0.5 text-base transition duration-300 text-sm">Publish
                                                     Now</button>
+                                            </div>
+                                            <div v-else-if="assignment.state === 'DRAFT' && publishLoading" class="flex justify-center text-text items-center gap-2">
+                                                <i class="pi pi-spin pi-spinner"></i> Mohon tunggu...
                                             </div>
                                         </td>
                                     </tr>
