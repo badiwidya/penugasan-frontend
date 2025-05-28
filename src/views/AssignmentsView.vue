@@ -1,9 +1,10 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import Loading from '@/components/Loading.vue'
 import Toast from '@/components/Toast.vue'
 import CreateBatchAssignment from '@/components/CreateBatchAssignment.vue'
+import { useAssignmentsStore } from '@/stores/assignment'
 
 const showToast = ref(false)
 const toastMessage = ref('')
@@ -84,12 +85,67 @@ const closeModal = () => {
 
 const handleSuccess = (message) => {
     triggerToast(`${message} berhasil dibuat!`, 'success')
-    closeModal()
+    if (message === 'Tugas') {
+        closeModal()
+    }
 }
 
 const handleError = (msg) => {
     triggerToast('Gagal membuat tugas, detail error ada di console', 'error')
     console.error(msg)
+}
+
+const assignment = useAssignmentsStore()
+
+const refresh = async () => {
+    loading.value = true
+    try {
+        await assignment.forceFetch()
+        triggerToast('Tugas berhasil dimuat ulang', 'success')
+    } catch (error) {
+        triggerToast(`Ada error: ${error?.message}`, 'error')
+    } finally {
+        loading.value = false
+        console.log(assignment.assignments)
+    }
+}
+
+
+const topics = ref([])
+
+watch(
+    () => assignment.assignments,
+    (newAssignment) => {
+        topics.value = Object.keys(assignment.assignments).map((topic) => {
+            return {
+                name: topic,
+                expanded: false,
+                assignments: assignment.assignments[topic]
+            }
+        })
+    },
+    { immediate: true }
+)
+
+const toggleTopic = (topic) => {
+    const topicSelected = topics.value.find((t) => t.name === topic)
+
+    if (topicSelected) {
+        topicSelected.expanded = !topicSelected.expanded
+    }
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${year}, ${hours}:${minutes}`;
 }
 
 
@@ -134,90 +190,68 @@ const handleError = (msg) => {
 <template>
     <DashboardLayout>
         <Toast :show="showToast" :message="toastMessage" :type="toastType" :duration="3000" @close="closeToast" />
-        <CreateBatchAssignment :show="showModal" @close="closeModal" @success="handleSuccess" @error="handleError"></CreateBatchAssignment>
+        <CreateBatchAssignment :show="showModal" @close="closeModal" @success="handleSuccess" @error="handleError">
+        </CreateBatchAssignment>
         <div class="bg-base flex justify-between mt-6 mx-6 text-text text-3xl font-bold">
             <h1>Daftar Tugas</h1>
-            <button
-                @click="openModal"
-                class="flex items-center gap-2 bg-mauve px-4 py-1 font-semibold text-lg text-base cursor-pointer hover:-translate-y-0.5 transition-all duration-300 rounded-md">
-                <i class="pi pi-plus"></i>
-                Tambah Tugas
-            </button>
+            <div class="gap-8 flex">
+                <i @click="refresh" class="pi pi-refresh cursor-pointer hover:animate-spin"></i>
+                <button @click="openModal"
+                    class="flex items-center gap-2 bg-mauve px-4 py-1 font-semibold text-lg text-base cursor-pointer hover:-translate-y-0.5 transition-all duration-300 rounded-md">
+                    <i class="pi pi-plus"></i>
+                    Tambah Tugas
+                </button>
+            </div>
         </div>
         <Loading v-if="loading" class-tambahan="text-xl font-semibold" />
-        <div class="flex flex-col items-center text-text p-6">
-            <div @click="toggleIndividu"
-                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center transition-all duration-300 hover:bg-opacity-80"
-                :class="{ 'rounded-b-md': !Iexpanded }">
-                Penugasan Individu
-                <i class="pi pi-angle-down icon-rotate" :class="{ 'rotated': Iexpanded }"></i>
-            </div>
-            <transition name="collapse" @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave"
-                @after-leave="onAfterLeave">
-                <div v-show="Iexpanded" class="collapse-content w-full bg-surface rounded-b-md overflow-hidden">
-                    <div class="px-4 pb-4">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="border-b border-gray-300">
-                                    <th class="text-left p-3 font-semibold">Nama Tugas</th>
-                                    <th class="text-left p-3 font-semibold">Deskripsi Tugas</th>
-                                    <th class="text-left p-3 font-semibold">Deadline</th>
-                                    <th class="text-left p-3 font-semibold">Link Tugas</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
+        <div v-if="topics.length > 0 && !loading" class="flex flex-col items-center text-text p-6">
+            <template v-for="(topic, index) in topics" :key="topic.name">
+                <div @click="toggleTopic(topic.name)"
+                    class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center transition-all duration-300 hover:bg-opacity-80"
+                    :class="{ 'rounded-b-md': !topic.expanded, 'mt-4': index > 0 }">
+                    {{ topic.name }}
+                    <i class="pi pi-angle-down icon-rotate" :class="{ 'rotated': topic.expanded }"></i>
                 </div>
-            </transition>
-
-            <div @click="toggleProxy"
-                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center transition-all duration-300 hover:bg-opacity-80 mt-4"
-                :class="{ 'rounded-b-md': !Pexpanded }">
-                Penugasan Proxy
-                <i class="pi pi-angle-down icon-rotate" :class="{ 'rotated': Pexpanded }"></i>
-            </div>
-            <transition name="collapse" @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave"
-                @after-leave="onAfterLeave">
-                <div v-show="Pexpanded" class="collapse-content w-full bg-surface rounded-b-md overflow-hidden">
-                    <div class="px-4 pb-4">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="border-b border-gray-300">
-                                    <th class="text-left p-3 font-semibold">Nama Tugas</th>
-                                    <th class="text-left p-3 font-semibold">Deskripsi Tugas</th>
-                                    <th class="text-left p-3 font-semibold">Deadline</th>
-                                    <th class="text-left p-3 font-semibold">Link Tugas</th>
-                                </tr>
-                            </thead>
-                        </table>
+                <transition name="collapse" @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave"
+                    @after-leave="onAfterLeave">
+                    <div v-show="topic.expanded"
+                        class="collapse-content w-full bg-surface rounded-b-md overflow-hidden">
+                        <div class="px-4 pb-4">
+                            <table class="w-full border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-300">
+                                        <th class="text-center p-3 font-semibold">Nama Tugas</th>
+                                        <th class="text-center p-3 font-semibold">Deskripsi Tugas</th>
+                                        <th class="text-center p-3 font-semibold">Deadline</th>
+                                        <th class="text-center p-3 font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="assignment in topic.assignments">
+                                        <td class="text-center p-3 font-semibold truncate">{{ assignment.name }}</td>
+                                        <td class="text-center p-3 font-semibold truncate">{{ assignment.description }}
+                                        </td>
+                                        <td class="text-center p-3 font-semibold flex flex-col items-center">{{ formatDate(assignment.dueDate) }}</td>
+                                        <td class="text-center p-3 font-semibold">
+                                            <div v-if="assignment.state === 'PUBLISHED'" class="text-center text-text">
+                                                Published</div>
+                                            <div v-else class="flex justify-center">
+                                                <button @click="publishAssignment(assignment.name)" type="button"
+                                                    class="px-2 py-1 bg-mauve rounded-md hover:-translate-y-0.5 text-base transition duration-300 text-sm">Publish
+                                                    Now</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-            </transition>
-
-            <div @click="toggleAngkatan"
-                class="flex w-full text-lg bg-mantle rounded-t-md p-4 cursor-pointer justify-between border-b-3 border-surface items-center transition-all duration-300 hover:bg-opacity-80 mt-4"
-                :class="{ 'rounded-b-md': !Aexpanded }">
-                Penugasan Angkatan
-                <i class="pi pi-angle-down icon-rotate" :class="{ 'rotated': Aexpanded }"></i>
-            </div>
-            <transition name="collapse" @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave"
-                @after-leave="onAfterLeave">
-                <div v-show="Aexpanded" class="collapse-content w-full bg-surface rounded-b-md overflow-hidden">
-                    <div class="px-4 pb-4">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="border-b border-gray-300">
-                                    <th class="text-left p-3 font-semibold">Nama Tugas</th>
-                                    <th class="text-left p-3 font-semibold">Deskripsi Tugas</th>
-                                    <th class="text-left p-3 font-semibold">Deadline</th>
-                                    <th class="text-left p-3 font-semibold">Link Tugas</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-            </transition>
-
+                </transition>
+            </template>
+        </div>
+        <div v-else-if="topics.length === 0 && !loading"
+            class="h-[80%] flex justify-center items-center text-text font-semibold text-2xl">
+            Tidak ada data tugas...
         </div>
     </DashboardLayout>
 </template>
