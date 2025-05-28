@@ -22,19 +22,6 @@ const closeToast = () => {
 }
 
 const loading = ref(false)
-const Iexpanded = ref(false)
-const Pexpanded = ref(false)
-const Aexpanded = ref(false)
-
-const toggleIndividu = () => {
-    Iexpanded.value = !Iexpanded.value
-}
-const toggleProxy = () => {
-    Pexpanded.value = !Pexpanded.value
-}
-const toggleAngkatan = () => {
-    Aexpanded.value = !Aexpanded.value
-}
 
 const onEnter = (el) => {
     el.style.height = '0'
@@ -204,31 +191,7 @@ const deleteAssignment = async (name) => {
     }
 }
 
-const deleteTopic = async (name) => {
-    loading.value = true
-    try {
-        const request = Object.keys(assignment.pairIds).map((course) => ({
-            courseId: course,
-            topicId: assignment.pairIds[course][name],
-        }))
-
-        const res = await api.post('/api/topics/batch/delete', { topics: request })
-
-        if (!res.data.status) {
-            console.log("Detail error:", res.data.detail)
-            throw new Error(res.data.message)
-        }
-
-        await assignment.forceFetch()
-
-        triggerToast(`Berhasil hapus topik ${name}`, 'success')
-    } catch (error) {
-        console.log(error)
-        triggerToast(`Gagal hapus topik ${name}`, 'error')
-    } finally {
-        loading.value = false
-    }
-}
+const showDeleteConfirmation = ref(false)
 
 
 </script>
@@ -298,7 +261,7 @@ const deleteTopic = async (name) => {
                     @after-leave="onAfterLeave">
                     <div v-show="topic.expanded"
                         class="collapse-content w-full bg-surface rounded-b-md overflow-hidden">
-                        <div class="px-4 pb-4">
+                        <div v-if="topic.assignments.length > 0" class="px-4 pb-4">
                             <table class="w-full border-collapse">
                                 <thead>
                                     <tr class="border-b border-gray-300">
@@ -333,14 +296,28 @@ const deleteTopic = async (name) => {
                                         </td>
                                         <td class="p-3 flex justify-center">
                                             <i v-if="deleteLoading" class="pi pi-spin pi-spinner text-text"></i>
-                                            <button v-else @click="deleteAssignment(assignment.name)" type="button"
+                                            <button v-else-if="!showDeleteConfirmation" @click="showDeleteConfirmation = true" type="button"
                                                 class="text-xs p-2 bg-red text-base rounded-md cursor-pointer hover:-translate-y-0.5 transition duration-300">
                                                 <i class="pi pi-trash"></i>
                                             </button>
+                                            <div v-else-if="showDeleteConfirmation" class="flex flex-col items-center">
+                                                Yakin?
+                                                <div class="flex gap-1">
+                                                    <span @click="deleteAssignment(assignment.name); showDeleteConfirmation = false" class="p-2 text-xs text-base rounded-md hover:-translate-y-0.5 cursor-pointer transition duration-300 bg-red">
+                                                        <i class="pi pi-check"></i>
+                                                    </span>
+                                                    <span @click="showDeleteConfirmation = false" class="p-2 text-xs text-base rounded-md hover:-translate-y-0.5 cursor-pointer transition duration-300 bg-subtext">
+                                                        <i class="pi pi-times"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div v-else class="flex justify-center text-text font-semibold text-lg py-4">
+                            Belum ada tugas di topik ini
                         </div>
                     </div>
                 </transition>
