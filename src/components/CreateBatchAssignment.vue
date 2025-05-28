@@ -91,6 +91,9 @@ const createAssignment = async () => {
             throw new Error(res.data.message)
         }
         resetForm()
+
+        await assignment.forceFetch()
+
         emits('success', 'Tugas')
     } catch (error) {
         emits('error', { message: error?.message })
