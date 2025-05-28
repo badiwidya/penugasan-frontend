@@ -17,10 +17,6 @@ const closeModal = () => {
     emits('close')
 }
 
-const sent = () => {
-    emits('success')
-}
-
 const courseIds = ref([])
 
 const assignment = useAssignmentsStore()
@@ -34,7 +30,8 @@ const form = reactive({
     name: '',
     description: '',
     maxPoints: 100,
-    dueDate: undefined
+    dueDate: undefined,
+    topic: ''
 })
 
 const resetForm = () => {
@@ -43,6 +40,7 @@ const resetForm = () => {
     form.description = ''
     form.maxPoints = 100,
     form.dueDate = undefined
+    form.topic = ''
 }
 
 const isAllSelected = computed(() => {
@@ -68,13 +66,46 @@ const createAssignment = async () => {
                 title: form.name,
                 description: form.description,
                 maxPoints: form.maxPoints,
-                dueDate: new Date(form.dueDate).toISOString()
+                dueDate: new Date(form.dueDate).toISOString(),
+                topic: assignment.pairIds[c][form.topic]
             }
         }))
 
         const res = await api.post('/api/assignments/batch', { assignments: assignments })
+        if (!res.data.status) {
+            throw new Error(res.data.message)
+        }
         resetForm()
-        emits('success')
+        emits('success', 'Tugas')
+    } catch (error) {
+        emits('error', { message: error?.message })
+    } finally {
+        loading.value = false
+    }
+}
+
+const topicAvailable = computed(() => Object.keys(assignment.assignments))
+const showTopicCreation = ref(false)
+
+const newTopic = ref('')
+
+const createTopic = async () => {
+    loading.value = true
+    try {
+        const topics = allProxy.map((proxy) => ({
+            courseId: proxy,
+            topic: newTopic.value
+        }))
+
+        const res = await api.post('/api/topics/batch', { topics: topics })
+        if (!res.data.status) {
+            throw new Error(res.data.message)
+        }
+        showTopicCreation.value = false
+        newTopic.value = ''
+        await assignment.forceFetch()
+        form.topic = newTopic.value
+        emits('success', 'Topic')
     } catch (error) {
         emits('error', { message: error?.message })
     } finally {
@@ -164,6 +195,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                     Tenggat Waktu
                                     <input type="datetime-local" v-model="form.dueDate" class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md">
                                 </label>
+
+                                <label class="flex flex-col">
+                                    Topik Tugas
+                               </label>
 
                                 <label class="flex flex-col">
                                     Nilai Maksimal

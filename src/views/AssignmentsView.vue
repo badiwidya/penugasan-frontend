@@ -82,12 +82,12 @@ const closeModal = () => {
     showModal.value = false
 }
 
-const handleSuccess = () => {
-    triggerToast('Tugas berhasil dibuat!', 'success')
+const handleSuccess = (message) => {
+    triggerToast(`${message} berhasil dibuat!`, 'success')
     closeModal()
 }
 
-const hadleError = (msg) => {
+const handleError = (msg) => {
     triggerToast('Gagal membuat tugas, detail error ada di console', 'error')
     console.error(msg)
 }
