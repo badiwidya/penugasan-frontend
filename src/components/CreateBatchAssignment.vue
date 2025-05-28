@@ -1,6 +1,6 @@
 <script setup>
 import { useAssignmentsStore } from '@/stores/assignment'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import api from '@/services/api.js'
 import { useCoursesStore } from '@/stores/course'
 
@@ -39,7 +39,7 @@ const resetForm = () => {
     form.name = ''
     form.description = ''
     form.maxPoints = 100,
-    form.dueDate = undefined
+        form.dueDate = undefined
     form.topic = ''
 }
 
@@ -85,9 +85,15 @@ const createAssignment = async () => {
 }
 
 const topicAvailable = computed(() => Object.keys(assignment.assignments))
+
 const showTopicCreation = ref(false)
 
 const newTopic = ref('')
+
+const cancelTopicCreation = () => {
+    showTopicCreation.value = false
+    newTopic.value = ''
+}
 
 const createTopic = async () => {
     loading.value = true
@@ -101,10 +107,12 @@ const createTopic = async () => {
         if (!res.data.status) {
             throw new Error(res.data.message)
         }
-        showTopicCreation.value = false
-        newTopic.value = ''
+
         await assignment.forceFetch()
+
+        showTopicCreation.value = false
         form.topic = newTopic.value
+        newTopic.value = ''
         emits('success', 'Topic')
     } catch (error) {
         emits('error', { message: error?.message })
@@ -112,6 +120,25 @@ const createTopic = async () => {
         loading.value = false
     }
 }
+
+const showDropdown = ref(false)
+const dropdownRef = ref(null)
+
+// Method untuk handle click outside
+const handleClickOutside = (event) => {
+    if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+        showDropdown.value = false
+    }
+}
+
+// Method untuk handle escape key
+const handleEscapeKey = (event) => {
+    if (event.key === 'Escape') {
+        showDropdown.value = false
+    }
+}
+
+
 
 onMounted(async () => {
     await courses.getData()
@@ -121,22 +148,31 @@ onMounted(async () => {
             name: course.name
         })
     })
+    document.addEventListener('click', handleClickOutside)
+    document.addEventListener('keydown', handleEscapeKey)
+})
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+    document.removeEventListener('keydown', handleEscapeKey)
 })
 
 </script>
 
 <style scoped>
 .hide-scrollbar {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
-  display: none !important;
+    display: none !important;
 }
+
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.5);
-  opacity: 0.8;
-  cursor: pointer;
+    filter: invert(0.5);
+    opacity: 0.8;
+    cursor: pointer;
 }
 </style>
 
@@ -159,7 +195,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                     </div>
 
                     <!-- Body -->
-                    <div v-if="loading" class="my-4 h-[400px] flex text-text font-semibold p-2 justify-center items-center gap-2">
+                    <div v-if="loading"
+                        class="my-4 h-[400px] flex text-text font-semibold p-2 justify-center items-center gap-2">
                         <i class="pi pi-spin pi-spinner"></i>
                         Mohon tunggu...
                     </div>
@@ -168,41 +205,85 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                             <div class="flex flex-col justify-center mb-2">
                                 <span>Proxy</span>
                                 <label class="flex items-center gap-2">
-                                    <input type="checkbox" :checked="isAllSelected" @change="toggleAll" class="form-checkbox h-4 w-4 text-mauve accent-mauve">
+                                    <input type="checkbox" :checked="isAllSelected" @change="toggleAll"
+                                        class="form-checkbox h-4 w-4 text-mauve accent-mauve">
                                     Pilih Semua
                                 </label>
                             </div>
                             <div
                                 class="w-full flex flex-col h-[150px] rounded-md border-2 p-2 border-surface overflow-y-auto mb-4">
                                 <label v-for="courseId in courseIds" :key="courseId.id" class="flex items-center gap-2">
-                                    <input type="checkbox" :value="courseId.id" v-model="form.selectedProxies" class="form-checkbox h-4 w-4 text-mauve accent-mauve">
+                                    <input type="checkbox" :value="courseId.id" v-model="form.selectedProxies"
+                                        class="form-checkbox h-4 w-4 text-mauve accent-mauve">
                                     {{ courseId.name }}
                                 </label>
                             </div>
 
-                            <div class="w-full flex flex-col gap-2 mb-4">
-                                <label class="flex flex-col">
+                            <div class="w-full flex flex-col mb-4">
+                                <label class="flex flex-col mb-4">
                                     Nama Tugas
-                                    <input type="text" v-model="form.name" class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md">
+                                    <input type="text" v-model="form.name"
+                                        class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md">
                                 </label>
-    
-                                <label class="flex flex-col">
+
+                                <label class="flex flex-col mb-4">
                                     Deskripsi Tugas
-                                    <textarea v-model="form.description" class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 rounded-md" rows="5"></textarea>
+                                    <textarea v-model="form.description"
+                                        class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 rounded-md"
+                                        rows="5"></textarea>
                                 </label>
 
-                                <label class="flex flex-col">
+                                <label class="flex flex-col mb-4">
                                     Tenggat Waktu
-                                    <input type="datetime-local" v-model="form.dueDate" class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md">
+                                    <input type="datetime-local" v-model="form.dueDate"
+                                        class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md">
                                 </label>
 
-                                <label class="flex flex-col">
+                                <label>
                                     Topik Tugas
-                               </label>
+                                </label>
 
-                                <label class="flex flex-col">
+                                <div class="relative mb-4" ref="dropdownRef">
+                                    <button type="button" @click="showDropdown = !showDropdown"
+                                        class="w-full flex items-center justify-between border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md bg-base text-left cursor-pointer">
+                                        <span class="text-text">{{ form.topic || 'Pilih Topik' }}</span>
+                                        <i class="pi pi-chevron-down transition-transform duration-200"
+                                            :class="{ '-rotate-90': showDropdown }"></i>
+                                    </button>
+                                    <div v-if="showDropdown"
+                                        class="absolute z-10 w-full mt-1 bg-base border border-surface rounded-md shadow-lg max-h-40 overflow-y-auto">
+                                        <div v-if="topicAvailable.length === 0"
+                                            class="w-full text-left px-2 py-1 text-subtext italic">
+                                            Belum ada topik
+                                        </div>
+                                        <button type="button" v-for="topic in topicAvailable" :key="topic"
+                                            @click="form.topic = topic; showDropdown = false"
+                                            class="w-full text-left px-2 py-1 hover:bg-mauve hover:text-base transition-colors duration-200 text-text">
+                                            {{ topic }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="button" v-if="!showTopicCreation"
+                                    @click.stop="() => { showTopicCreation = true; console.log(showTopicCreation) }"
+                                    class="flex items-center justify-center cursor-pointer gap-2 py-1 bg-mauve rounded-md text-sm text-base hover:-translate-y-0.5 transition duration-300"><i
+                                        class="pi pi-plus"></i> Buat Topik Baru</button>
+                                <div class="flex" v-else @click.stop>
+                                    <div class="flex items-center gap-1" @click.stop>
+                                        <input type="text" v-model="newTopic"
+                                            class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md">
+                                        <button type="button" @click="createTopic"
+                                            class="bg-mauve text-base cursor-pointer px-2 py-1 rounded-md hover:-translate-y-0.5 transition duration-300"><i
+                                                class="pi pi-plus"></i></button>
+                                        <button type="button" @click.stop="cancelTopicCreation"
+                                            class="bg-subtext text-base cursor-pointer px-2 py-1 rounded-md hover:-translate-y-0.5 transition duration-300">Cancel</button>
+                                    </div>
+                                </div>
+
+                                <label class="flex flex-col mt-4">
                                     Nilai Maksimal
-                                    <input type="number" min="0" max="100" v-model="form.maxPoints" class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md text-text">
+                                    <input type="number" min="0" max="100" v-model="form.maxPoints"
+                                        class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md text-text">
                                 </label>
                             </div>
 
