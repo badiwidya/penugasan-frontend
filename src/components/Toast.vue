@@ -70,7 +70,7 @@ const bgColor = computed(() => {
     enter-to-class="translate-y-0 opacity-100 sm:translate-x-0" leave-active-class="transition ease-in duration-200"
     leave-from-class="opacity-100" leave-to-class="opacity-0">
     <div v-if="show" :class="bgColor"
-      class="toast bottom-4 right-4 fixed z-50 max-w-sm w-full px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-90 flex items-center">
+      class="toast bottom-4 right-4 fixed z-100 max-w-sm w-full px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm bg-opacity-90 flex items-center">
       <div class="flex-shrink-0 mr-3">
         <i :class="icon" class="text-lg text-base"></i>
       </div>
