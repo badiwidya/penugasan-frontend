@@ -29,3 +29,17 @@
 body {
   @apply font-poppins
 }
+
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #1e1e2f;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #cba6f7;
+  border-radius: 8px;
+  border: 2px solid #1e1e2f;
+}
