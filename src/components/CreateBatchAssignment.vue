@@ -40,9 +40,9 @@ const resetForm = () => {
     form.name = ''
     form.description = ''
     form.maxPoints = 100,
-        form.dueDate = undefined
+    form.dueDate = undefined
     form.topic = '',
-        form.state = 'DRAFT'
+    form.state = 'DRAFT'
 }
 
 const isAllSelected = computed(() => {
@@ -82,7 +82,8 @@ const createAssignment = async () => {
                 description: form.description,
                 maxPoints: form.maxPoints,
                 dueDate: new Date(form.dueDate).toISOString(),
-                topic: assignment.pairIds[c][form.topic]
+                topicId: assignment.pairIds[c][form.topic],
+                state: form.state
             }
         }))
 
@@ -317,7 +318,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                         <input type="radio" value="PUBLISHED" v-model="form.state" class="hidden" />
                                         <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
                                             :class="form.state === 'PUBLISHED' ? 'border-mauve' : 'border-subtext'">
-                                            <div v-if="form.state === 'PUBLISHED'" class="w-2 h-2 bg-mauve rounded-full">
+                                            <div v-if="form.state === 'PUBLISHED'"
+                                                class="w-2 h-2 bg-mauve rounded-full">
                                             </div>
                                         </div>
                                         <span class="text-sm font-medium">Published</span>
