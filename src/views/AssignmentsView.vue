@@ -252,6 +252,7 @@ const publishAssignment = async (name) => {
                                         <th class="text-center p-3 max-w-80 w-80 font-semibold">Deskripsi Tugas</th>
                                         <th class="text-center p-3 font-semibold">Deadline</th>
                                         <th class="text-center p-3 font-semibold">Status</th>
+                                        <th class="text-center p-3 font-semibold">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -272,6 +273,14 @@ const publishAssignment = async (name) => {
                                             <div v-else-if="assignment.state === 'DRAFT' && publishLoading" class="flex justify-center text-text items-center gap-2">
                                                 <i class="pi pi-spin pi-spinner"></i> Mohon tunggu...
                                             </div>
+                                        </td>
+                                        <td class="p-3 flex justify-center gap-2">
+                                            <button type="button" class="text-xs p-2 bg-blue text-base rounded-md cursor-pointer hover:-translate-y-0.5 transition duration-300">
+                                                <i class="pi pi-pen-to-square"></i>
+                                            </button>
+                                            <button type="button" class="text-xs p-2 bg-red text-base rounded-md cursor-pointer hover:-translate-y-0.5 transition duration-300">
+                                                <i class="pi pi-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
