@@ -34,6 +34,7 @@ const showTopicCreation = ref(false)
 const newTopic = ref('')
 const showDropdown = ref(false)
 const dropdownRef = ref(null)
+const materialUrl = ref('')
 
 const form = reactive({
     selectedProxies: [],
@@ -49,9 +50,9 @@ const resetForm = () => {
     form.selectedProxies = []
     form.name = ''
     form.description = ''
-    form.maxPoints = 100,
+    form.maxPoints = 100
     form.dueDate = undefined
-    form.topic = '',
+    form.topic = ''
     form.state = 'DRAFT'
 }
 
@@ -67,7 +68,7 @@ const createAssignment = async () => {
     loading.value = true
 
     const isDuplicate = Object.values(assignment.assignments).some((topic) => {
-        return topic.find((t) => t.name === form.name.trim())
+        return topic.find((t) => t.name.trim() === form.name.trim())
     })
 
     if (isDuplicate) {
@@ -125,7 +126,7 @@ const cancelTopicCreation = () => {
 const createTopic = async () => {
     loading.value = true
 
-    const isDuplicate = Object.keys(assignment.assignments).some(topic => topic === newTopic.value.trim())
+    const isDuplicate = Object.keys(assignment.assignments).some(topic => topic.trim() === newTopic.value.trim())
 
     console.log(isDuplicate)
 
