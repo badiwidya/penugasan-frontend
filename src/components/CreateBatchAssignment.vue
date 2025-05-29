@@ -17,13 +17,23 @@ const closeModal = () => {
     emits('close')
 }
 
+/* ===================== */
+/* INISIALISASI VARIABEL */
+/* ===================== */
 const courseIds = ref([])
-
 const assignment = useAssignmentsStore()
-
 const courses = useCoursesStore()
-
 const allProxy = courses.courses.map((c) => c.id)
+const loading = ref(false)
+const errorMessage = ref('')
+const isAllSelected = computed(() => {
+    return form.selectedProxies.length === allProxy.length
+})
+const topicAvailable = computed(() => Object.keys(assignment.assignments))
+const showTopicCreation = ref(false)
+const newTopic = ref('')
+const showDropdown = ref(false)
+const dropdownRef = ref(null)
 
 const form = reactive({
     selectedProxies: [],
@@ -40,14 +50,10 @@ const resetForm = () => {
     form.name = ''
     form.description = ''
     form.maxPoints = 100,
-        form.dueDate = undefined
+    form.dueDate = undefined
     form.topic = '',
-        form.state = 'DRAFT'
+    form.state = 'DRAFT'
 }
-
-const isAllSelected = computed(() => {
-    return form.selectedProxies.length === allProxy.length
-})
 
 const toggleAll = () => {
     if (isAllSelected.value) {
@@ -56,10 +62,6 @@ const toggleAll = () => {
         form.selectedProxies = [...allProxy]
     }
 }
-
-const loading = ref(false)
-
-const errorMessage = ref('')
 
 const createAssignment = async () => {
     loading.value = true
@@ -115,12 +117,6 @@ const createAssignment = async () => {
     }
 }
 
-const topicAvailable = computed(() => Object.keys(assignment.assignments))
-
-const showTopicCreation = ref(false)
-
-const newTopic = ref('')
-
 const cancelTopicCreation = () => {
     showTopicCreation.value = false
     newTopic.value = ''
@@ -169,9 +165,6 @@ const createTopic = async () => {
     }
 }
 
-const showDropdown = ref(false)
-const dropdownRef = ref(null)
-
 // Method untuk handle click outside
 const handleClickOutside = (event) => {
     if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
@@ -185,8 +178,6 @@ const handleEscapeKey = (event) => {
         showDropdown.value = false
     }
 }
-
-
 
 onMounted(async () => {
     await courses.getData()
