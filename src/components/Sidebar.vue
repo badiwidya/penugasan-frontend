@@ -22,6 +22,7 @@ const logout = async () => {
                 <div class="w-full flex flex-col gap-1">
                     <RouterLink to="/dashboard" :class="{ 'bg-surface': $route.path === '/dashboard' }" class="pl-4 py-2 text-text font-semibold rounded-md hover:bg-surface">Beranda</RouterLink>
                     <RouterLink to="/assignments" :class="{ 'bg-surface': $route.path === '/assignments' }" class="pl-4 py-2 text-text font-semibold rounded-md hover:bg-surface">Tugas</RouterLink>
+                    <RouterLink to="/materials" :class="{ 'bg-surface': $route.path === '/materials' }" class="pl-4 py-2 text-text font-semibold rounded-md hover:bg-surface">Materi</RouterLink>
                 </div>
                 <button @click="logout" class="text-left pl-4 py-2 text-text font-semibold rounded-md hover:bg-surface">Logout</button>
             </nav>

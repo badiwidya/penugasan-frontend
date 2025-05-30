@@ -3,6 +3,7 @@ import LoginView from "@/views/LoginView.vue";
 import DashboardView from "@/views/DashboardView.vue";
 import { useAuth } from "@/stores/auth.js";
 import AssignmentsView from "@/views/AssignmentsView.vue";
+import MaterialsView from "@/views/MaterialsView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,15 @@ const router = createRouter({
                 requiresAuth: true,
             },
             component: AssignmentsView,
+        },
+        {
+            path: "/materials",
+            name: "Materials",
+            meta: {
+                title: "Materi - PI 61",
+                requiresAuth: true,
+            },
+            component: MaterialsView,
         },
     ],
 });
