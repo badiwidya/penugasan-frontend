@@ -59,14 +59,6 @@ const resetForm = () => {
     form.attachments = []
 }
 
-const toggleAll = () => {
-    if (isAllSelected.value) {
-        form.selectedProxies = []
-    } else {
-        form.selectedProxies = [...allProxy]
-    }
-}
-
 // Validasi form
 const validate = () => {
     const isValidUrl = (url) => {
@@ -300,7 +292,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                             <div class="flex flex-col justify-center mb-2">
                                 <span>Proxy</span>
                                 <label class="flex items-center gap-2">
-                                    <input disabled type="checkbox" :checked="isAllSelected" @change="toggleAll"
+                                    <input disabled type="checkbox" :checked="isAllSelected"
                                         class="form-checkbox h-4 w-4 text-mauve accent-mauve">
                                     Pilih Semua
                                 </label>
@@ -440,7 +432,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 
                             <button type="submit"
-                                class=" py-1 px-2 bg-mauve rounded-md cursor-pointer hover:-translate-y-0.5 transition-transform duration-300 text-base">Buat
+                                class="mt-4 py-1 px-2 bg-mauve rounded-md cursor-pointer hover:-translate-y-0.5 transition-transform duration-300 text-base">Buat
                                 Tugas</button>
                         </form>
                     </div>
