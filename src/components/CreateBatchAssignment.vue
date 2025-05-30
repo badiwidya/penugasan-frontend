@@ -32,8 +32,13 @@ const isAllSelected = computed(() => {
 const topicAvailable = computed(() => Object.keys(assignment.assignments))
 const showTopicCreation = ref(false)
 const newTopic = ref('')
-const showDropdown = ref(false)
-const dropdownRef = ref(null)
+const showDropdowns = reactive({
+    topicsDropdown: false,
+    attachmentsDropdown: false
+})
+const topicsRef = ref(null)
+const attachmentsRef = ref(null)
+const attachmentsAvailable = ref(['link', 'form', 'youtube'])
 
 const form = reactive({
     selectedProxies: [],
@@ -174,19 +179,22 @@ const createTopic = async () => {
 
 // Method untuk handle click outside
 const handleClickOutside = (event) => {
-    if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
-        showDropdown.value = false
+    if (topicsRef.value && !topicsRef.value.contains(event.target)) {
+        showDropdowns.topicsDropdown = false
+    }
+    if (attachmentsRef.value && !attachmentsRef.value.contains(event.target)) {
+        showDropdowns.attachmentsDropdown = false
     }
 }
 
 // Method untuk handle escape key
 const handleEscapeKey = (event) => {
     if (event.key === 'Escape') {
-        showDropdown.value = false
+        showDropdowns.topicsDropdown = false
+        showDropdowns.attachmentsDropdown = false
     }
 }
 
-const attachmentsAvailable = ref(['link', 'form', 'youtube'])
 
 /* 
     NOTE: format url youtube harus berupa
@@ -309,21 +317,22 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                     Topik Tugas
                                 </label>
 
-                                <div class="relative mb-4" ref="dropdownRef">
-                                    <button type="button" @click="showDropdown = !showDropdown"
+                                <div class="relative mb-4" ref="topicsRef">
+                                    <button type="button"
+                                        @click="showDropdowns.topicsDropdown = !showDropdowns.topicsDropdown"
                                         class="w-full flex items-center justify-between border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md bg-base text-left cursor-pointer">
                                         <span class="text-text">{{ form.topic || 'Pilih Topik' }}</span>
                                         <i class="pi pi-chevron-down transition-transform duration-200"
-                                            :class="{ '-rotate-90': showDropdown }"></i>
+                                            :class="{ '-rotate-90': showDropdowns.topicsDropdown }"></i>
                                     </button>
-                                    <div v-if="showDropdown"
+                                    <div v-if="showDropdowns.topicsDropdown"
                                         class="absolute z-10 w-full mt-1 bg-base border border-surface rounded-md shadow-lg max-h-40 overflow-y-auto">
                                         <div v-if="topicAvailable.length === 0"
                                             class="w-full text-left px-2 py-1 text-subtext italic">
                                             Belum ada topik
                                         </div>
                                         <button type="button" v-for="topic in topicAvailable" :key="topic"
-                                            @click="form.topic = topic; showDropdown = false"
+                                            @click="form.topic = topic; showDropdowns.topicsDropdown = false"
                                             class="w-full text-left px-2 py-1 hover:bg-mauve hover:text-base transition-colors duration-200 text-text">
                                             {{ topic }}
                                         </button>
@@ -342,6 +351,39 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                                 class="pi pi-plus"></i></button>
                                         <button type="button" @click.stop="cancelTopicCreation"
                                             class="bg-subtext text-base cursor-pointer px-2 py-1 rounded-md hover:-translate-y-0.5 transition duration-300">Cancel</button>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col my-4 gap-2">
+                                    <label>
+                                        Lampiran
+                                    </label>
+
+                                    <div v-for="(attachment, index) in form.attachments" class="flex w-full">
+                                        <input type="text" v-model="attachment.value"
+                                            class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md flex-grow rounded-r-none"
+                                            :placeholder="`Masukkan url ${attachment.type}...`">
+                                        <button @click="removeAttachment(index)" type="button"
+                                            class="px-2 bg-red text-base rounded-md rounded-l-none hover:bg-red/70 cursor-pointer transition duration-300"><i
+                                                class="pi pi-times"></i></button>
+                                    </div>
+
+                                    <div class="relative inline-block" ref="attachmentsRef">
+                                        <button type="button"
+                                            @click="showDropdowns.attachmentsDropdown = !showDropdowns.attachmentsDropdown"
+                                            class="flex w-full text-base items-center justify-center border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md bg-mauve hover:bg-mauve/70 text-left cursor-pointer gap-2 text-sm">
+                                            <i class="pi pi-plus"></i>
+                                            <span>Tambah Lampiran</span>
+                                        </button>
+                                        <div v-if="showDropdowns.attachmentsDropdown"
+                                            class="absolute mb-1 z-10 flex flex-col mt-1 bg-base border border-surface rounded-md shadow-lg max-h-40 overflow-y-auto w-full">
+                                            <button type="button" v-for="attachment in attachmentsAvailable"
+                                                :key="attachment"
+                                                @click="addAttachment(attachment); showDropdowns.attachmentsDropdown = false"
+                                                class="text-left px-2 py-1 hover:bg-mauve hover:text-base transition-colors duration-200 text-text">
+                                                {{ attachment.charAt(0).toUpperCase() + attachment.slice(1) }}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -382,11 +424,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                 </div>
                             </div>
 
-                            <div class="flex flex-col my-4">
-                                <label>
-                                    Lampiran
-                                </label>
-                            </div>
+
 
                             <div v-if="errorMessage" class="text-red-500 text-sm my-2">{{ errorMessage }}</div>
 
