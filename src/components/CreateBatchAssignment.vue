@@ -41,7 +41,7 @@ const attachmentsRef = ref(null)
 const attachmentsAvailable = ref(['link', 'form', 'youtube'])
 
 const form = reactive({
-    selectedProxies: [],
+    selectedProxies: allProxy,
     name: '',
     description: '',
     maxPoints: 100,
@@ -70,9 +70,60 @@ const toggleAll = () => {
     }
 }
 
+const extractYouTubeID = (url) => {
+    const regex = /(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&\s]+)/
+    const match = url.match(regex)
+    return match ? match[1] : null
+}
+
 // Validasi form
 const validate = () => {
+    const isValidUrl = (url) => {
+        try {
+            new URL(url)
+            return true
+        } catch (e) {
+            return false
+        }
+    }
 
+    const isValidYoutubeUrl = (url) => {
+        const regex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}(&.*)?$/
+        return regex.test(url)
+    }
+
+    const isValidFormUrl = (url) => {
+        const regex = /^https?:\/\/docs\.google\.com\/forms\/d\/[\w-]+\/?.*$/
+        return regex.test(url)
+    }
+
+    const hasEmptyField =
+        form.selectedProxies.length === 0 ||
+        !form.name.trim() ||
+        !form.description.trim() ||
+        !form.topic.trim() ||
+        !form.dueDate
+
+    if (hasEmptyField) {
+        return false
+    }
+
+    if (form.attachments.length === 0) {
+        return true
+    }
+
+    const attachmentsValid = form.attachments.every((attachment) => {
+        if (attachment.type === 'youtube') {
+            return isValidYoutubeUrl(attachment.value)
+        } else if (attachment.type === 'form') {
+            return isValidFormUrl(attachment.value)
+        } else if (attachment.type === 'link') {
+            return isValidUrl(attachment.value)
+        }
+        return false
+    })
+
+    return attachmentsValid
 }
 
 const createAssignment = async () => {
@@ -88,19 +139,27 @@ const createAssignment = async () => {
         return
     }
 
-    if (
-        form.selectedProxies.length === 0 ||
-        !form.name.trim() ||
-        !form.description.trim() ||
-        !form.topic.trim() ||
-        !form.dueDate
-    ) {
+    const validationResult = validate()
+
+    if (!validationResult) {
         loading.value = false
-        errorMessage.value = 'Semua field wajib diisi'
+        errorMessage.value = 'Mohon periksa form, ada beberapa yang tidak memenuhi'
         return
     }
 
     try {
+        const materials = []
+
+        form.attachments.forEach((attachment) => {
+            if (attachment.type === 'youtube') {
+                materials.push({ youtubeVideo: { id: extractYouTubeID(attachment.value) } })
+            } else if (attachment.type === 'form') {
+                materials.push({ form: { formUrl: attachment.value } })
+            } else if (attachment.type === 'link') {
+                materials.push({ link: { url: attachment.value } })
+            }
+        })
+
         const assignments = form.selectedProxies.map((c) => ({
             courseId: c,
             assignment: {
@@ -109,7 +168,8 @@ const createAssignment = async () => {
                 maxPoints: form.maxPoints,
                 dueDate: new Date(form.dueDate).toISOString(),
                 topicId: assignment.pairIds[c][form.topic],
-                state: form.state
+                state: form.state,
+                materials: materials
             }
         }))
 
@@ -279,7 +339,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                             <div class="flex flex-col justify-center mb-2">
                                 <span>Proxy</span>
                                 <label class="flex items-center gap-2">
-                                    <input type="checkbox" :checked="isAllSelected" @change="toggleAll"
+                                    <input disabled type="checkbox" :checked="isAllSelected" @change="toggleAll"
                                         class="form-checkbox h-4 w-4 text-mauve accent-mauve">
                                     Pilih Semua
                                 </label>
@@ -287,7 +347,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                             <div
                                 class="w-full flex flex-col h-[150px] rounded-md border-2 p-2 border-surface overflow-y-auto mb-4">
                                 <label v-for="courseId in courseIds" :key="courseId.id" class="flex items-center gap-2">
-                                    <input type="checkbox" :value="courseId.id" v-model="form.selectedProxies"
+                                    <input disabled type="checkbox" :value="courseId.id" v-model="form.selectedProxies"
                                         class="form-checkbox h-4 w-4 text-mauve accent-mauve">
                                     {{ courseId.name }}
                                 </label>
@@ -354,18 +414,20 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                     </div>
                                 </div>
 
-                                <div class="flex flex-col my-4 gap-2">
+                                <div class="flex flex-col my-4">
                                     <label>
                                         Lampiran
                                     </label>
 
-                                    <div v-for="(attachment, index) in form.attachments" class="flex w-full">
+                                    <div v-for="(attachment, index) in form.attachments"
+                                        class="flex w-full focus-within:ring-2 focus-within:ring-mauve border border-surface rounded-md overflow-hidden transition duration-300 mb-2">
                                         <input type="text" v-model="attachment.value"
-                                            class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md flex-grow rounded-r-none"
-                                            :placeholder="`Masukkan url ${attachment.type}...`">
+                                            class="flex-grow px-2 py-1 focus:outline-none"
+                                            :placeholder="`Masukkan url ${attachment.type}...`" />
                                         <button @click="removeAttachment(index)" type="button"
-                                            class="px-2 bg-red text-base rounded-md rounded-l-none hover:bg-red/70 cursor-pointer transition duration-300"><i
-                                                class="pi pi-times"></i></button>
+                                            class="px-2 bg-red text-base hover:bg-red/70 transition duration-300">
+                                            <i class="pi pi-times"></i>
+                                        </button>
                                     </div>
 
                                     <div class="relative inline-block" ref="attachmentsRef">
@@ -376,7 +438,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                             <span>Tambah Lampiran</span>
                                         </button>
                                         <div v-if="showDropdowns.attachmentsDropdown"
-                                            class="absolute mb-1 z-10 flex flex-col mt-1 bg-base border border-surface rounded-md shadow-lg max-h-40 overflow-y-auto w-full">
+                                            class="absolute mb-1 z-10 flex flex-col bg-base border border-surface rounded-md shadow-lg max-h-40 overflow-y-auto w-full">
                                             <button type="button" v-for="attachment in attachmentsAvailable"
                                                 :key="attachment"
                                                 @click="addAttachment(attachment); showDropdowns.attachmentsDropdown = false"
@@ -387,7 +449,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                     </div>
                                 </div>
 
-                                <label class="flex flex-col mt-4">
+                                <label class="flex flex-col">
                                     Nilai Maksimal
                                     <input type="number" min="0" max="100" v-model="form.maxPoints"
                                         class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md text-text">
