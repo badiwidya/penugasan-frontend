@@ -34,7 +34,6 @@ const showTopicCreation = ref(false)
 const newTopic = ref('')
 const showDropdown = ref(false)
 const dropdownRef = ref(null)
-const materialUrl = ref('')
 
 const form = reactive({
     selectedProxies: [],
@@ -44,6 +43,7 @@ const form = reactive({
     dueDate: undefined,
     topic: '',
     state: 'DRAFT',
+    attachments: [],
 })
 
 const resetForm = () => {
@@ -54,6 +54,7 @@ const resetForm = () => {
     form.dueDate = undefined
     form.topic = ''
     form.state = 'DRAFT'
+    form.attachments = []
 }
 
 const toggleAll = () => {
@@ -62,6 +63,11 @@ const toggleAll = () => {
     } else {
         form.selectedProxies = [...allProxy]
     }
+}
+
+// Validasi form
+const validate = () => {
+
 }
 
 const createAssignment = async () => {
@@ -178,6 +184,26 @@ const handleEscapeKey = (event) => {
     if (event.key === 'Escape') {
         showDropdown.value = false
     }
+}
+
+const attachmentsAvailable = ref(['link', 'form', 'youtube'])
+
+/* 
+    NOTE: format url youtube harus berupa
+    https://youtu.be/{id} atau
+    https://youtube.com/watch?v={id}
+*/
+
+// Attachment (drive soon)
+const addAttachment = (type) => {
+    form.attachments.push({
+        type: type,
+        value: ''
+    });
+}
+
+const removeAttachment = (idx) => {
+    form.attachments.splice(idx, 1)
 }
 
 onMounted(async () => {
@@ -304,8 +330,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                     </div>
                                 </div>
 
-                                <button type="button" v-if="!showTopicCreation"
-                                    @click.stop="showTopicCreation = true"
+                                <button type="button" v-if="!showTopicCreation" @click.stop="showTopicCreation = true"
                                     class="flex items-center justify-center cursor-pointer gap-2 py-1 bg-mauve rounded-md text-sm text-base hover:-translate-y-0.5 transition duration-300"><i
                                         class="pi pi-plus"></i> Buat Topik Baru</button>
                                 <div class="flex" v-else @click.stop>
@@ -325,34 +350,42 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                     <input type="number" min="0" max="100" v-model="form.maxPoints"
                                         class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md text-text">
                                 </label>
-
-                                <label class="flex flex-col mt-4">
-                                    State
-                                </label>
-                                <div class="flex gap-4">
-                                    <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
-                                        :class="{ 'border-mauve': form.state === 'PUBLISHED' }">
-                                        <input type="radio" value="PUBLISHED" v-model="form.state" class="hidden" />
-                                        <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
-                                            :class="form.state === 'PUBLISHED' ? 'border-mauve' : 'border-subtext'">
-                                            <div v-if="form.state === 'PUBLISHED'"
-                                                class="w-2 h-2 bg-mauve rounded-full">
-                                            </div>
-                                        </div>
-                                        <span class="text-sm font-medium">Published</span>
+                                <div class="block mt-4">
+                                    <label>
+                                        State
                                     </label>
-
-                                    <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
-                                        :class="{ 'border-mauve': form.state === 'DRAFT' }">
-                                        <input type="radio" value="DRAFT" v-model="form.state" class="hidden" />
-                                        <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
-                                            :class="form.state === 'DRAFT' ? 'border-mauve' : 'border-subtext'">
-                                            <div v-if="form.state === 'DRAFT'" class="w-2 h-2 bg-mauve rounded-full">
+                                    <div class="flex gap-4">
+                                        <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
+                                            :class="{ 'border-mauve': form.state === 'PUBLISHED' }">
+                                            <input type="radio" value="PUBLISHED" v-model="form.state" class="hidden" />
+                                            <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                                                :class="form.state === 'PUBLISHED' ? 'border-mauve' : 'border-subtext'">
+                                                <div v-if="form.state === 'PUBLISHED'"
+                                                    class="w-2 h-2 bg-mauve rounded-full">
+                                                </div>
                                             </div>
-                                        </div>
-                                        <span class="text-sm font-medium">Draft</span>
-                                    </label>
+                                            <span class="text-sm font-medium">Published</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
+                                            :class="{ 'border-mauve': form.state === 'DRAFT' }">
+                                            <input type="radio" value="DRAFT" v-model="form.state" class="hidden" />
+                                            <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                                                :class="form.state === 'DRAFT' ? 'border-mauve' : 'border-subtext'">
+                                                <div v-if="form.state === 'DRAFT'"
+                                                    class="w-2 h-2 bg-mauve rounded-full">
+                                                </div>
+                                            </div>
+                                            <span class="text-sm font-medium">Draft</span>
+                                        </label>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <div class="flex flex-col my-4">
+                                <label>
+                                    Lampiran
+                                </label>
                             </div>
 
                             <div v-if="errorMessage" class="text-red-500 text-sm my-2">{{ errorMessage }}</div>
