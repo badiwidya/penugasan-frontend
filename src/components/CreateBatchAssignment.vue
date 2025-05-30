@@ -34,11 +34,8 @@ const showTopicCreation = ref(false)
 const newTopic = ref('')
 const showDropdowns = reactive({
     topicsDropdown: false,
-    attachmentsDropdown: false
 })
 const topicsRef = ref(null)
-const attachmentsRef = ref(null)
-const attachmentsAvailable = ref(['link', 'form', 'youtube'])
 
 const form = reactive({
     selectedProxies: allProxy,
@@ -70,12 +67,6 @@ const toggleAll = () => {
     }
 }
 
-const extractYouTubeID = (url) => {
-    const regex = /(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&\s]+)/
-    const match = url.match(regex)
-    return match ? match[1] : null
-}
-
 // Validasi form
 const validate = () => {
     const isValidUrl = (url) => {
@@ -85,16 +76,6 @@ const validate = () => {
         } catch (e) {
             return false
         }
-    }
-
-    const isValidYoutubeUrl = (url) => {
-        const regex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}(&.*)?$/
-        return regex.test(url)
-    }
-
-    const isValidFormUrl = (url) => {
-        const regex = /^https?:\/\/docs\.google\.com\/forms\/d\/[\w-]+\/?.*$/
-        return regex.test(url)
     }
 
     const hasEmptyField =
@@ -113,14 +94,7 @@ const validate = () => {
     }
 
     const attachmentsValid = form.attachments.every((attachment) => {
-        if (attachment.type === 'youtube') {
-            return isValidYoutubeUrl(attachment.value)
-        } else if (attachment.type === 'form') {
-            return isValidFormUrl(attachment.value)
-        } else if (attachment.type === 'link') {
-            return isValidUrl(attachment.value)
-        }
-        return false
+        return isValidUrl(attachment)
     })
 
     return attachmentsValid
@@ -151,13 +125,7 @@ const createAssignment = async () => {
         const materials = []
 
         form.attachments.forEach((attachment) => {
-            if (attachment.type === 'youtube') {
-                materials.push({ youtubeVideo: { id: extractYouTubeID(attachment.value) } })
-            } else if (attachment.type === 'form') {
-                materials.push({ form: { formUrl: attachment.value } })
-            } else if (attachment.type === 'link') {
-                materials.push({ link: { url: attachment.value } })
-            }
+            materials.push({ link: { url: attachment } })
         })
 
         const assignments = form.selectedProxies.map((c) => ({
@@ -242,16 +210,12 @@ const handleClickOutside = (event) => {
     if (topicsRef.value && !topicsRef.value.contains(event.target)) {
         showDropdowns.topicsDropdown = false
     }
-    if (attachmentsRef.value && !attachmentsRef.value.contains(event.target)) {
-        showDropdowns.attachmentsDropdown = false
-    }
 }
 
 // Method untuk handle escape key
 const handleEscapeKey = (event) => {
     if (event.key === 'Escape') {
         showDropdowns.topicsDropdown = false
-        showDropdowns.attachmentsDropdown = false
     }
 }
 
@@ -263,11 +227,8 @@ const handleEscapeKey = (event) => {
 */
 
 // Attachment (drive soon)
-const addAttachment = (type) => {
-    form.attachments.push({
-        type: type,
-        value: ''
-    });
+const addAttachment = () => {
+    form.attachments.push('');
 }
 
 const removeAttachment = (idx) => {
@@ -421,70 +382,57 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
                                     <div v-for="(attachment, index) in form.attachments"
                                         class="flex w-full focus-within:ring-2 focus-within:ring-mauve border border-surface rounded-md overflow-hidden transition duration-300 mb-2">
-                                        <input type="text" v-model="attachment.value"
+                                        <input type="text" v-model="form.attachments[index]"
                                             class="flex-grow px-2 py-1 focus:outline-none"
-                                            :placeholder="`Masukkan url ${attachment.type}...`" />
+                                            :placeholder="`Masukkan url attachment...`" />
                                         <button @click="removeAttachment(index)" type="button"
                                             class="px-2 bg-red text-base hover:bg-red/70 transition duration-300">
                                             <i class="pi pi-times"></i>
                                         </button>
                                     </div>
-
-                                    <div class="relative inline-block" ref="attachmentsRef">
-                                        <button type="button"
-                                            @click="showDropdowns.attachmentsDropdown = !showDropdowns.attachmentsDropdown"
-                                            class="flex w-full text-base items-center justify-center border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md bg-mauve hover:bg-mauve/70 text-left cursor-pointer gap-2 text-sm">
-                                            <i class="pi pi-plus"></i>
-                                            <span>Tambah Lampiran</span>
-                                        </button>
-                                        <div v-if="showDropdowns.attachmentsDropdown"
-                                            class="absolute mb-1 z-10 flex flex-col bg-base border border-surface rounded-md shadow-lg max-h-40 overflow-y-auto w-full">
-                                            <button type="button" v-for="attachment in attachmentsAvailable"
-                                                :key="attachment"
-                                                @click="addAttachment(attachment); showDropdowns.attachmentsDropdown = false"
-                                                class="text-left px-2 py-1 hover:bg-mauve hover:text-base transition-colors duration-200 text-text">
-                                                {{ attachment.charAt(0).toUpperCase() + attachment.slice(1) }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <label class="flex flex-col">
-                                    Nilai Maksimal
-                                    <input type="number" min="0" max="100" v-model="form.maxPoints"
-                                        class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md text-text">
-                                </label>
-                                <div class="block mt-4">
-                                    <label>
-                                        State
-                                    </label>
-                                    <div class="flex gap-4">
-                                        <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
-                                            :class="{ 'border-mauve': form.state === 'PUBLISHED' }">
-                                            <input type="radio" value="PUBLISHED" v-model="form.state" class="hidden" />
-                                            <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
-                                                :class="form.state === 'PUBLISHED' ? 'border-mauve' : 'border-subtext'">
-                                                <div v-if="form.state === 'PUBLISHED'"
-                                                    class="w-2 h-2 bg-mauve rounded-full">
-                                                </div>
-                                            </div>
-                                            <span class="text-sm font-medium">Published</span>
-                                        </label>
-
-                                        <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
-                                            :class="{ 'border-mauve': form.state === 'DRAFT' }">
-                                            <input type="radio" value="DRAFT" v-model="form.state" class="hidden" />
-                                            <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
-                                                :class="form.state === 'DRAFT' ? 'border-mauve' : 'border-subtext'">
-                                                <div v-if="form.state === 'DRAFT'"
-                                                    class="w-2 h-2 bg-mauve rounded-full">
-                                                </div>
-                                            </div>
-                                            <span class="text-sm font-medium">Draft</span>
-                                        </label>
-                                    </div>
+                                    <button type="button" @click="addAttachment"
+                                        class="flex w-full text-base items-center justify-center border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md bg-mauve hover:bg-mauve/70 text-left cursor-pointer gap-2 text-sm">
+                                        <i class="pi pi-plus"></i>
+                                        <span>Tambah Lampiran</span>
+                                    </button>
                                 </div>
                             </div>
+
+                            <label class="flex flex-col">
+                                Nilai Maksimal
+                                <input type="number" min="0" max="100" v-model="form.maxPoints"
+                                    class="border-1 border-surface focus:outline-none focus:ring-2 focus:ring-mauve transition-all duration-300 px-2 py-1 rounded-md text-text">
+                            </label>
+                            <div class="block mt-4">
+                                <label>
+                                    State
+                                </label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
+                                        :class="{ 'border-mauve': form.state === 'PUBLISHED' }">
+                                        <input type="radio" value="PUBLISHED" v-model="form.state" class="hidden" />
+                                        <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                                            :class="form.state === 'PUBLISHED' ? 'border-mauve' : 'border-subtext'">
+                                            <div v-if="form.state === 'PUBLISHED'"
+                                                class="w-2 h-2 bg-mauve rounded-full">
+                                            </div>
+                                        </div>
+                                        <span class="text-sm font-medium">Published</span>
+                                    </label>
+
+                                    <label class="flex items-center gap-2 cursor-pointer p-2 border rounded-md"
+                                        :class="{ 'border-mauve': form.state === 'DRAFT' }">
+                                        <input type="radio" value="DRAFT" v-model="form.state" class="hidden" />
+                                        <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                                            :class="form.state === 'DRAFT' ? 'border-mauve' : 'border-subtext'">
+                                            <div v-if="form.state === 'DRAFT'" class="w-2 h-2 bg-mauve rounded-full">
+                                            </div>
+                                        </div>
+                                        <span class="text-sm font-medium">Draft</span>
+                                    </label>
+                                </div>
+                            </div>
+
 
 
 
@@ -495,7 +443,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                                 class=" py-1 px-2 bg-mauve rounded-md cursor-pointer hover:-translate-y-0.5 transition-transform duration-300 text-base">Buat
                                 Tugas</button>
                         </form>
-
                     </div>
                 </div>
             </div>
